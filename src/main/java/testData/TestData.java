@@ -21,5 +21,17 @@ public class TestData {
     public static final String[] COLOR_ALL = new String[]{"BLACK","GRAY"};
     public static final String[] COLOR_NULL = new String[]{""};
 
+    public  static final String CREATE_BAD_REQUEST_MESSAGE = "Недостаточно данных для создания учетной записи";
+    public  static final String CREATE_СONFLICT_MESSAGE = "Этот логин уже используется. Попробуйте другой.";
+    public  static final String LOGIN_BAD_REQUEST_MESSAGE = "Недостаточно данных для входа";
+    public  static final String LOGIN_NOT_FOUND_MESSAGE = "Учетная запись не найдена";
+
+    public  static  final int CREATED_COURIER_STATUS = 201;
+    public  static  final int CREATED_ORDER_STATUS = 201;
+    public  static  final int LOGINOK_COURIER_STATUS = 200;
+    public  static  final int DELETEOK_COURIER_STATUS = 200;
+    public  static  final int LOGIN_BR_COURIER_STATUS = 400;
+    public  static  final int LOGIN_CONFLICT_COURIER_STATUS = 409;
+    public  static  final int LOGIN_NF_COURIER_STATUS = 404;
 
 }
