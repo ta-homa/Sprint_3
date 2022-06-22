@@ -7,7 +7,6 @@ import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,38 +16,20 @@ import static org.hamcrest.core.IsNull.notNullValue;
 public class LoginCourierTests {
     CourierRequests courierRequests = new CourierRequests();
     Courier courier = new Courier();
-
-    String login = LOGIN;
-    String password = PASSWORD;
-    String firstName = FIRSTNAME;
-
     @Before
     public void before() {
         RestAssured.baseURI = URL;
     }
 
-    @After
-    public void after() {
-        //ОЧИЩЕНИЕ
-        //получаем id курьера
-        courierRequests.courierLogin(courier)
-                .then().assertThat().statusCode(200);
-        int id = courierRequests.courierLogin(courier).path("id");
-        //удаление созданного курьера
-        courierRequests.courierDelete(id)
-                .then().assertThat().statusCode(200)
-                .and().body("ok", equalTo(true));
-    }
-
     @Test
     @DisplayName("Проверка успешного логина курьера") // имя теста
     public void loginCourierOk() {
-        courier.setLogin(login);
-        courier.setPassword(password);
-        courier.setFirstName(firstName);
+        courier.setLogin(LOGIN);
+        courier.setPassword(PASSWORD);
+        courier.setFirstName(FIRSTNAME);
         //создание курьера
         Response response = create(courier);
-        response.then().assertThat().statusCode(201)
+        response.then().assertThat().statusCode(CREATED_COURIER_STATUS)
                 .and().body("ok", equalTo(true));
 
         Courier courierOK = new Courier();
@@ -56,37 +37,70 @@ public class LoginCourierTests {
         courierOK.setPassword(courier.getPassword());
         //логин проверка,
         response = login(courierOK);
-        response.then().assertThat().statusCode(200)
+        response.then().assertThat().statusCode(LOGINOK_COURIER_STATUS)
                 .and().body("id", notNullValue());
+
+        //ОЧИЩЕНИЕ
+        //получаем id курьера
+        response = login(courier);
+        response.then().assertThat().statusCode(LOGINOK_COURIER_STATUS);
+        int id = courierRequests.courierLogin(courier).path("id");
+        //удаление созданного курьера
+        response = delete(id);
+        response.then().assertThat().statusCode(DELETEOK_COURIER_STATUS)
+                .and().body("ok",equalTo(true));
     }
 
     @Test
     @DisplayName("Проверка неуспешного логина курьера без логина или пароля") // имя теста
     public void loginCourierBadRequest() {
-        courier.setLogin(login);
-        courier.setPassword(password);
-        courier.setFirstName(firstName);
+        courier.setLogin(LOGIN);
+        courier.setPassword(PASSWORD);
+        courier.setFirstName(FIRSTNAME);
         //создание курьера
         Response response = create(courier);
-        response.then().assertThat().statusCode(201)
+        response.then().assertThat().statusCode(CREATED_COURIER_STATUS)
                 .and().body("ok", equalTo(true));
 
         //логин проверка ,без пароля
         courier.setPassword("");
         response = login(courier);
-        response.then().assertThat().statusCode(400)
-                .and().body("message", equalTo("Недостаточно данных для входа"));
+        response.then().assertThat().statusCode(LOGIN_BR_COURIER_STATUS)
+                .and().body("message", equalTo(LOGIN_BAD_REQUEST_MESSAGE));
 
         //возвращаем пароль
-        courier.setPassword(password);
+        courier.setPassword(PASSWORD);
         //логин проверка ,без логина
         courier.setLogin("");
         response = login(courier);
-        response.then().assertThat().statusCode(400)
-                .and().body("message", equalTo("Недостаточно данных для входа"));
+        response.then().assertThat().statusCode(LOGIN_BR_COURIER_STATUS)
+                .and().body("message", equalTo(LOGIN_BAD_REQUEST_MESSAGE));
         //возвращем логин
-        courier.setLogin(login);
+        courier.setLogin(LOGIN);
+
+        //ОЧИЩЕНИЕ
+        //получаем id курьера
+        response = login(courier);
+        response.then().assertThat().statusCode(LOGINOK_COURIER_STATUS);
+        int id = courierRequests.courierLogin(courier).path("id");
+        //удаление созданного курьера
+        response = delete(id);
+        response.then().assertThat().statusCode(DELETEOK_COURIER_STATUS)
+                .and().body("ok",equalTo(true));
     }
+
+    @Test
+    @DisplayName("Проверка неуспешного логина курьера с неверным логином или паролем") // имя теста
+    public void loginCourierNotFound() {
+        courier.setLogin(LOGIN);
+        courier.setPassword(PASSWORD);
+
+        //логин проверка ,без логина
+        Response response = login(courier);
+        response.then().assertThat().statusCode(LOGIN_NF_COURIER_STATUS)
+                .and().body("message", equalTo(LOGIN_NOT_FOUND_MESSAGE));
+    }
+
 
     @Step("Создание курьера")
     public Response create(Courier courier) {
@@ -96,6 +110,10 @@ public class LoginCourierTests {
     @Step("Логин курьера")
     public Response login(Courier courier) {
         return courierRequests.courierLogin(courier);
+    }
 
+    @Step("Удаление курьера")
+    public Response delete(int id) {
+        return courierRequests.courierDelete(id);
     }
 }

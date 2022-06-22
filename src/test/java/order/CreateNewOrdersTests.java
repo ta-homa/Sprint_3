@@ -51,7 +51,7 @@ public class CreateNewOrdersTests {
         order.setColor(color);
 
         Response response = create(order);
-                response.then().assertThat().statusCode(201)
+                response.then().assertThat().statusCode(CREATED_ORDER_STATUS)
                 .and().body("track",notNullValue());
     }
 
